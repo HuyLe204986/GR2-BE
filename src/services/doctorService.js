@@ -60,12 +60,24 @@ let getAllDoctors = () => {
 let saveDetailInforDoctor = (inputData) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!inputData.doctorId || !inputData.contentHTML || !inputData.contentMarkdown || !inputData.action) {
+            if (
+                !inputData.doctorId ||
+                !inputData.contentHTML ||
+                !inputData.contentMarkdown ||
+                !inputData.action ||
+                !inputData.selectedPrice ||
+                !inputData.selectedPayment ||
+                !inputData.selectedProvince ||
+                !inputData.addressClinic ||
+                !inputData.nameClinic ||
+                !inputData.note
+            ) {
                 resolve({
                     errCode: 1,
                     errMessage: 'Missing required parameter',
                 });
             } else {
+                //upsert to markdown
                 if (inputData.action === 'CREATE') {
                     await db.Markdown.create({
                         contentHTML: inputData.contentHTML,
@@ -84,6 +96,38 @@ let saveDetailInforDoctor = (inputData) => {
                         doctorMarkdown.description = inputData.description;
                         await doctorMarkdown.save();
                     }
+                }
+
+                //upsert to doctor_infor table
+                let doctorInfor = await db.Doctor_Infor.findOne({
+                    where: {
+                        doctorId: inputData.doctorId,
+                    },
+                    raw: false,
+                });
+
+                if (doctorInfor) {
+                    //update
+                    doctorInfor.doctorId = inputData.doctorId,
+                    doctorInfor.priceId = inputData.selectedPrice;
+                    doctorInfor.paymentId = inputData.selectedPayment;
+                    doctorInfor.provinceId = inputData.selectedProvince;
+                    doctorInfor.addressClinic = inputData.addressClinic;
+                    doctorInfor.nameClinic = inputData.nameClinic;
+                    doctorInfor.note = inputData.note;
+
+                    await doctorInfor.save();
+                } else {
+                    //create
+                    await db.Doctor_Infor.create({
+                        doctorId: inputData.doctorId,
+                        priceId: inputData.selectedPrice,
+                        paymentId: inputData.selectedPayment,
+                        provinceId: inputData.selectedProvince,
+                        addressClinic: inputData.addressClinic,
+                        nameClinic: inputData.nameClinic,
+                        note: inputData.note,
+                    });
                 }
                 resolve({
                     errCode: 0,
@@ -182,10 +226,47 @@ let bulkCreateSchedule = (data) => {
         }
     });
 };
+
+let getScheduleByDate = (doctorId, date) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!doctorId || !date) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter',
+                });
+            } else {
+                let dataSchedule = await db.Schedule.findAll({
+                    where: {
+                        doctorId: doctorId,
+                        date: date,
+                    },
+                    include: [
+                        {
+                            model: db.Allcode,
+                            as: 'timeTypeData',
+                            attributes: ['valueEn', 'valueVi'],
+                        },
+                    ],
+                    raw: false,
+                    nest: true,
+                });
+                if (!dataSchedule) dataSchedule = [];
+                resolve({
+                    errCode: 0,
+                    data: dataSchedule,
+                });
+            }
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
 module.exports = {
     getTopDoctorHome,
     getAllDoctors,
     saveDetailInforDoctor,
     getDetailDoctorById,
     bulkCreateSchedule,
+    getScheduleByDate,
 };
