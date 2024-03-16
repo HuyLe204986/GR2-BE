@@ -33,7 +33,7 @@ let getBodyHTMLEmail = (dataSend) => {
       <p>If the above information is true, please click on the link below to confirm and complete the medical appointment booking procedure.</p>
       <div><a href=${dataSend.redirectLink} target="_blank">Click here</a></div>
   
-      <div>Sincerely thank!</div>
+      <div>SincerelRDy thank!</div>
     `;
     }
     if (dataSend.language === 'vi') {

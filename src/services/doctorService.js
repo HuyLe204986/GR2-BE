@@ -57,24 +57,44 @@ let getAllDoctors = () => {
     });
 };
 
+let checkRequiredFields = (inputData) => {
+    let arr = [
+        'doctorId',
+        'contentHTML',
+        'contentMarkdown',
+        'action',
+        'selectedPrice',
+        'selectedPayment',
+        'selectedProvince',
+        'addressClinic',
+        'nameClinic',
+        'note',
+        'specialtyId',
+    ];
+    let isValid = true;
+    let element = '';
+    for (let index = 0; index < arr.length; index++) {
+        if (!inputData[arr[index]]) {
+            isValid = false;
+            element = arr[index];
+            break;
+        }
+    }
+
+    return {
+        isValid,
+        element,
+    };
+};
+
 let saveDetailInforDoctor = (inputData) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (
-                !inputData.doctorId ||
-                !inputData.contentHTML ||
-                !inputData.contentMarkdown ||
-                !inputData.action ||
-                !inputData.selectedPrice ||
-                !inputData.selectedPayment ||
-                !inputData.selectedProvince ||
-                !inputData.addressClinic ||
-                !inputData.nameClinic ||
-                !inputData.note
-            ) {
+            let checkObj = checkRequiredFields(inputData);
+            if (!checkObj.isValid) {
                 resolve({
                     errCode: 1,
-                    errMessage: 'Missing required parameter',
+                    errMessage: `Missing required parameter ${checkObj.element}`,
                 });
             } else {
                 //upsert to markdown
@@ -113,6 +133,8 @@ let saveDetailInforDoctor = (inputData) => {
                     doctorInfor.provinceId = inputData.selectedProvince;
                     doctorInfor.addressClinic = inputData.addressClinic;
                     doctorInfor.nameClinic = inputData.nameClinic;
+                    doctorInfor.specialtyId = inputData.specialtyId;
+                    doctorInfor.clinicId = inputData.clinicId;
                     doctorInfor.note = inputData.note;
 
                     await doctorInfor.save();
@@ -126,6 +148,8 @@ let saveDetailInforDoctor = (inputData) => {
                         addressClinic: inputData.addressClinic,
                         nameClinic: inputData.nameClinic,
                         note: inputData.note,
+                        specialtyId: inputData.specialtyId,
+                        clinicId: inputData.clinicId,
                     });
                 }
                 resolve({
