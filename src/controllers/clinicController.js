@@ -1,4 +1,3 @@
-
 import clinicService from '../services/clinicService';
 
 let createClinic = async (req, res) => {
@@ -14,6 +13,33 @@ let createClinic = async (req, res) => {
     }
 };
 
+let getAllClinic = async (req, res) => {
+    try {
+        let infor = await clinicService.getAllClinic();
+        return res.status(200).json(infor);
+    } catch (error) {
+        console.log(error);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'error from server...',
+        });
+    }
+}
+
+let getDetailClinicById = async (req, res) => {
+    try {
+        let infor = await clinicService.getDetailClinicById(req.query.id);
+        return res.status(200).json(infor);
+    } catch (error) {
+        console.log(error);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'error from server...',
+        });
+    }
+}
 module.exports = {
     createClinic,
+    getDetailClinicById,
+    getAllClinic,
 };
